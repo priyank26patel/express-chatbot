@@ -12,6 +12,9 @@
 + open *1
 - ^openWebbuilder(<cap1>)
 
++ price of sku *1
+- ^getPriceBySku(<cap1>)
+
 + product api
 - do you have any vshop id?[yes/no]
     + yes

@@ -1,5 +1,5 @@
 {
-  "name": "myBotName",
+  "name": "ExpressChatbot",
   "version": "0.0.0",
   "private": true,
   "main": "./index",
@@ -24,9 +24,7 @@
   "scripts": {
     "build": "babel src --presets babel-preset-env --out-dir lib",
     "parse": "parse -f",
-    "start-telnet": "npm run build && node lib/server-telnet.js",
     "start-express": "npm run build && node lib/server-express.js",
-    "start-slack": "npm run build && node lib/server-slack.js",
     "start-websocket": "npm run build && node lib/server-websocket.js"
   }
 }

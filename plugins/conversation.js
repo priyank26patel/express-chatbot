@@ -9,24 +9,16 @@ var instance = axios.create({
 exports.getConversation = function(text,cb) {
     let date=chrono.parseDate(text) 
     console.log("parsed to string:--",date)
-    // console.log("parsed to string:--",date.toString())
     
     if(date){
         cb(null, {action:"insert",text:"Your appointment is booked on "+date.toString(),date:date})
     }else{
         cb(null, "No date found" )
     }
-        // cb(null, "I would call it " + parsed.out('text'));
 }
 
 exports.getListAppointment = function(text,cb) {
-    // console.log("parsed to text:--",text)
-    
-    // if(!text || text.length===0)
-    //     text='Today' 
     let date=chrono.parseDate(text) 
-    // console.log("parsed to string:--",date)
-    // console.log("parsed to string:--",date.toString())
     
     if(date){
         let message=this.message
@@ -95,7 +87,6 @@ exports.getMapLocation=function (cb) {
 }
 
 exports.getDbPediaSearch= function (text,cb) {   
-    console.log("Message:--")
     axios.get('http://lookup.dbpedia.org/api/search.asmx/KeywordSearch?QueryClass=&QueryString='+text)
         .then(function (response) { 
 
@@ -132,7 +123,38 @@ exports.openWebbuilder = function(text,cb) {
     cb(null,obj)
 }
 
- function callDBPediaAPI(dataObj,cb) {
+exports.getPriceBySku = function(text,cb) {
+    axios.get('https://api.flowzqa.tk/pdmnew/pdm/US?sku='+text,{ headers: { vid: '971775a0-7464-425f-9369-4dd5b57a2fc2' }})
+    .then(function (response) {
+        if(response.data.hits.total) {
+            if(response.data.hits.total==1)
+            {
+                let result = response.data.hits.hits[0]._source.price_1.toString();
+                if(result) {
+                    let obj = {
+                        text: result
+                    }
+                    cb(null,obj)
+                }
+                else {
+                    cb(null,"Sorry, we are not able to find price. Try another.")   
+                }
+            }
+            else {
+                cb(null,"We find more than one results. Try another.")   
+            }
+        }
+        else {
+            cb(null,"SKU is invalid. Try another.")   
+        }
+    })
+    .catch(function (error) {
+        console.log(error);
+        cb(null,"Sorry, we are not able connect. Try after sometime.")
+    });
+}
+
+function callDBPediaAPI(dataObj,cb) {
     console.log("response.data:--> ",dataObj.uri)
 
     let BASE_URL="http://dbpedia.org/sparql?default-graph-uri=http%3A%2F%2Fdbpedia.org&query="
@@ -150,20 +172,17 @@ exports.openWebbuilder = function(text,cb) {
                     PREFIX purl: <http://purl.org/dc/terms/>`
 
     callDBPediaResourcesCategory(BASE_URL,QUERY_PREFIX,dataObj.uri,callDbPediaResoucesType,cb)
-
 }
 
- function callDBPediaResourcesCategory(baseURL,queryPrefix,resourceId,cb,rCb) {
+function callDBPediaResourcesCategory(baseURL,queryPrefix,resourceId,cb,rCb) {
     console.log("callDBPediaResourcesCategory: --",resourceId)
     let QUERY_URL=`SELECT *
             WHERE {<`+resourceId+`> <http://purl.org/dc/terms/subject> ?categories }`
     
     let mainUrl=baseURL + encodeURIComponent( (queryPrefix + QUERY_URL).replace(/\n+/g,''))+'&output=json';
     
-    // console.log("Category Url:--",mainUrl)
      axios.get(mainUrl).then(result=>{
         let bindings=result.data.results.bindings;
-        // console.log("Category: --",bindings)
         cb(baseURL,queryPrefix,resourceId,bindings,callDbPediaSnorql,rCb);
     }).catch(error=>{
         console.log("Category Error:  --",error)
@@ -185,10 +204,8 @@ function callDbPediaResoucesType(baseURL,queryPrefix,resourceId,categories,cb,rC
 
     let mainUrl=baseURL + encodeURIComponent( (queryPrefix + QUERY_URL).replace(/\n+/g,''))+'&output=json';
 
-
     axios.get(mainUrl).then(result=>{
             let bindings=result.data.results.bindings;
-            // console.log("Types: --",bindings)
             cb(baseURL,queryPrefix,resourceId,categories,bindings,rCb);
     })
 }
@@ -206,63 +223,50 @@ function callDbPediaSnorql(baseURL,queryPrefix,resourceId,categories,arrayTypes,
     var resultArray={text:'Result found'};
     var resultObj={}
     arrayTypes.forEach(element => {
-        
         console.log("element:--",element)
         let property=element.property;
         let label=element.label;
-        if(label){
-        let pValue=property.value;
-        let lastSegment=pValue.substr(pValue.lastIndexOf('/') + 1);
-        let  hasQuery=  dataQuery.concat(' ?subject <'+pValue+'> ?'+lastSegment)
+
+        if(label) {
+            let pValue=property.value;
+            let lastSegment=pValue.substr(pValue.lastIndexOf('/') + 1);
+            let hasQuery=  dataQuery.concat(' ?subject <'+pValue+'> ?'+lastSegment)
             if(lastSegment==='abstract')
                 hasQuery=  hasQuery.concat(" filter langMatches(lang(?abstract), 'en')")
             hasQuery=  hasQuery.concat(" }")
-       //+ ' filter langMatches(lang(?label), \'en\') }' )
-    //    hasQuery=hasQuery.concat(' filter(langMatches(lang(?'+lastSegment+'),"en"))} ')
 
-        let mainUrl=baseURL + encodeURIComponent( (queryPrefix + hasQuery).replace(/\n+/g,''))+'&output=json';
-       
+            let mainUrl=baseURL + encodeURIComponent( (queryPrefix + hasQuery).replace(/\n+/g,''))+'&output=json';
 
-          primisesArray.push(axios.get(mainUrl).then(response=>{
-            response.data.results.label=label.value
-            response.data.results.property=lastSegment
-            return response}).catch(error=>{}))
-         
+            primisesArray.push(axios.get(mainUrl).then(response=>{
+                response.data.results.label=label.value
+                response.data.results.property=lastSegment
+                return response
+            }).catch(error=>{
+
+            }))
         }
-          
     })
 
    
-// 
-        let req=primisesArray.slice(0, 30)
-        // console.log("<---Primise:--->",req.length)
-        axios.all(req).then(values=>
-            {
-                // console.log("values--------->",values[0].data)
-                    values.forEach(element => {
-                        // console.log("element--------->",element.data)
-                        let results=element.data.results;
-                        let bindings=results.bindings;
-                        // console.log("Resilt : "+lastSegment+"-->>",bindings)
-                        if(bindings.length>0)
-                        {
-                            // console.log("Result :-->>",bindings)
-                             let resultBind=bindings[0];
-                            // let keys=Object.keys(resultBind)
-                            
-                             let value=resultBind[results.property].value
-                            //  console.log("Last Rsult:--"+ keys[1] +'--->'+value)
-                            let data={key:results.label,value}
-                            resultObj[results.property]=data
-                        }
-                        })
-                        resultArray.action='dbpedia';
-                resultArray.search=resultObj
-                // console.log("resultArray--------->",resultArray);
-                
-                rCb(null,resultArray);
-                
-            }).catch(error=>{
-                console.log("resultArray error--------->",error.message);
-            })       
+    let req=primisesArray.slice(0, 30)
+    axios.all(req).then(values=>
+        {
+            values.forEach(element => {
+                let results=element.data.results;
+                let bindings=results.bindings;
+                if(bindings.length>0)
+                {
+                    let resultBind=bindings[0];
+                    let value=resultBind[results.property].value
+                    let data={key:results.label,value}
+                    resultObj[results.property]=data
+                }
+            })
+            resultArray.action='dbpedia';
+            resultArray.search=resultObj
+            
+            rCb(null,resultArray);
+        }).catch(error=>{
+            console.log("resultArray error--------->",error.message);
+        })       
 }

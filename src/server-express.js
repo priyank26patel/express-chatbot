@@ -6,21 +6,24 @@ const server = express();
 const PORT = process.env.PORT || 5000;
 
 server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({ extended: true }));
 server.set('view engine', 'ejs');
+server.use(express.static(__dirname + '/public'))
 
 let bot;
 
 server.get('/superscript', (req, res) => {
-  if (req.query.message) {
-    return bot.reply('user1', req.query.message, (err, reply) => {
-      // res.json({
-      //   message: reply.string,
-      // });
-      res.render('index',{user:reply.string,title:"homepage"})
-    });
-  }
-  res.render('index',{error:'No message provided.'});
+  res.render('index',{port:PORT,title:"chatbot",text:"Welcome to the SuperScript  Demo!\n"})
 });
+
+server.post('/chat-message', (req, res) => {
+	if (req.body.message) {
+		return bot.reply('newUser', req.body.message.trim(), (err, reply) => {
+			res.send(reply);
+		});
+	}
+	return res.send('No message provided.\n');
+})
 
 const options = {
   factSystem: {
