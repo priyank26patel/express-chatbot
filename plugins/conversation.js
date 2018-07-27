@@ -124,7 +124,7 @@ exports.openWebbuilder = function(text,cb) {
 }
 
 exports.getPriceBySku = function(text,cb) {
-    axios.get('https://api.flowzqa.tk/pdmnew/pdm/US?sku='+text,{ headers: { vid: '971775a0-7464-425f-9369-4dd5b57a2fc2' }})
+    axios.get('https://api.flowzcluster.tk/pdmnew/pdm/US?sku='+text,{ headers: { vid: '226b8796-f916-4ec0-9286-7df49ebfae22' }})
     .then(function (response) {
         if(response.data.hits.total) {
             if(response.data.hits.total==1)

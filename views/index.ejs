@@ -103,7 +103,7 @@
             
             let msgs = reply.string.split("\n");
             msgs.forEach(element => {
-              // translateMessage(element);
+              translateMessage(element);
               $('#messages').append($('<li>').text(element));
                   $('#loader').css('display','none');
             });
@@ -143,23 +143,23 @@
         });
 
         // Translate message to other language
-        // function translateMessage(inputVal) {
-        //   console.log('Input Translate ', inputVal)
-        //   axios.post('https://api.cenacle.io/phtrans/toGujarati/json?api_key=VQQHbNPyHmUtps4u2oQgGj9y5oyM6v29UifUyM95', {
-        //       input: inputVal,
-        //   },{
-        //     headers: {
-        //         'X-Api-Key': 'VQQHbNPyHmUtps4u2oQgGj9y5oyM6v29UifUyM95',
-        //         'Content-Type': 'application/json'
-        //     }
-        //   })
-        //   .then(function (response) {
-        //     console.log(response);
-        //   })
-        //   .catch(function (error) {
-        //     console.log("Error:", error);
-        //   });
-        // }
+        function translateMessage(inputVal) {
+          console.log('Input Translate ', inputVal)
+          axios.post('https://api.cenacle.io/phtrans/toGujarati/json?api_key=VQQHbNPyHmUtps4u2oQgGj9y5oyM6v29UifUyM95', {
+              input: inputVal,
+          },{
+            headers: {
+                'X-Api-Key': 'VQQHbNPyHmUtps4u2oQgGj9y5oyM6v29UifUyM95',
+                'Content-Type': 'application/json'
+            }
+          })
+          .then(function (response) {
+            console.log(response);
+          })
+          .catch(function (error) {
+            console.log("Error:", error);
+          });
+        }
 
         function capitalizeFirstLetter(string) {
           return string.charAt(0).toUpperCase() + string.slice(1);
